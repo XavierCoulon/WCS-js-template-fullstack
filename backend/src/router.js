@@ -1,13 +1,31 @@
 const express = require("express");
+const fs = require("fs");
 
 const router = express.Router();
 
-const itemControllers = require("./controllers/itemControllers");
+const multer = require("multer");
 
-router.get("/items", itemControllers.browse);
-router.get("/items/:id", itemControllers.read);
-router.put("/items/:id", itemControllers.edit);
-router.post("/items", itemControllers.add);
-router.delete("/items/:id", itemControllers.destroy);
+const upload = multer({
+  dest: "tmp/",
+  limits: {
+    fileSize: 1024 * 1000 * 3,
+  },
+});
+
+router.post("/monupload", upload.array("image"), (req, res) => {
+  try {
+    for (let i = 0; i < req.files.length; i += 1) {
+      fs.rename(
+        req.files[i].path,
+        `public/assets/images/${req.files[i].originalname}`,
+        (err) => {
+          if (err) throw err;
+        }
+      );
+    }
+  } catch (error) {
+    res.send("Error...");
+  }
+});
 
 module.exports = router;
